@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced Todo App</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #f0f2f5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+        .container {
+            background-color: white;
+            padding: 2rem;
+            border-radius: 15px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+            transition: background-color 0.3s ease, box-shadow 0.3s ease;
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 1.5rem;
+            font-size: 2.5rem;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        h1 .icon {
+            margin-right: 0.5rem;
+            font-size: 2.5rem;
+        }
+        input, button {
+            width: 100%;
+            padding: 0.75rem;
+            margin-bottom: 1rem;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            box-sizing: border-box;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        button:hover {
+            background-color: #45a049;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        #todo_display {
+            margin-top: 1.5rem;
+        }
+        .todo-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem 1rem;
+            border-bottom: 1px solid #eee;
+            border-radius: 10px;
+            background-color: #ffefd5;
+            margin-bottom: 0.75rem;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            transition: background-color 0.3s ease, transform 0.3s ease;
+        }
+        .todo-item:last-child {
+            border-bottom: none;
+        }
+        .todo-item:hover {
+            background-color: #f0f2f5;
+            transform: translateY(-2px);
+        }
+        .todo-item button {
+            width: auto;
+            padding: 0.5rem 1rem;
+            margin: 0 0.25rem;
+            font-size: 0.9rem;
+            border-radius: 5px;
+        }
+        .completed {
+            text-decoration: line-through;
+            color: #888;
+        }
+        .dark-mode {
+            background-color: black;
+            color: #f0f0f0;
+        }
+        .dark-mode .container {
+            background-color: white;
+            color: #333;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+        }
+        .dark-mode input, .dark-mode button {
+            border: 1px solid #ddd;
+        }
+        .dark-mode button {
+            background-color: #4CAF50;
+        }
+        .dark-mode button:hover {
+            background-color: #45a049;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+        .dark-mode .todo-item {
+            background-color: #ffefd5;
+            border-bottom: 1px solid #eee;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1><span class="icon">📝</span> Advanced Todo App</h1>
+        <input type="text" id="todo_title" placeholder="Enter todo title">
+        <input type="text" id="todo_desc" placeholder="Enter todo description">
+        <button onclick="performOperation()">Add Todo</button>
+        <button onclick="toggleDarkMode()">Toggle Dark Mode</button>
+        <div id="todo_display"></div>
+    </div>
+
+    <script>
+        const titleInput = document.getElementById("todo_title");
+        const descInput = document.getElementById("todo_desc");
+        const todoDisplay = document.getElementById("todo_display");
+        let todos = JSON.parse(localStorage.getItem('todos')) || [];
+
+        function performOperation() {
+            const newTodo = {
+                title: titleInput.value,
+                desc: descInput.value,
+                completion: false
+            };
+            todos.push(newTodo);
+            updateTodoDisplay();
+            titleInput.value = "";
+            descInput.value = "";
+            saveTodos();
+        }
+
+        function updateTodoDisplay() {
+            todoDisplay.innerHTML = "";
+            todos.forEach(function(elements, index) {
+                const todo = document.createElement("div");
+                todo.className = "todo-item";
+                todo.innerHTML = `
+                    <span class="${elements.completion ? 'completed' : ''}">
+                        ${elements.title}: ${elements.desc}
+                    </span>
+                    <button onclick="edit(${index})">Edit</button>
+                    <button onclick="toggle(${index})">
+                        ${elements.completion ? 'Completed' : 'Incomplete'}
+                    </button>
+                    <button onclick="deleteItem(${index})">Delete</button>
+                `;
+                todoDisplay.appendChild(todo);
+            });
+        }
+
+        function toggle(index) {
+            todos[index].completion = !todos[index].completion;
+            updateTodoDisplay();
+            saveTodos();
+        }
+
+        function edit(index) {
+            const newTitle = prompt("Edit title:", todos[index].title);
+            const newDesc = prompt("Edit description:", todos[index].desc);
+            if (newTitle !== null && newDesc !== null) {
+                todos[index].title = newTitle;
+                todos[index].desc = newDesc;
+                updateTodoDisplay();
+                saveTodos();
+            }
+        }
+
+        function deleteItem(index) {
+            todos.splice(index, 1);
+            updateTodoDisplay();
+            saveTodos();
+        }
+
+        function toggleDarkMode() {
+            document.body.classList.toggle('dark-mode');
+        }
+
+        function saveTodos() {
+            localStorage.setItem('todos', JSON.stringify(todos));
+        }
+
+        // Initial rendering
+        updateTodoDisplay();
+    </script>
+</body>
+</html>
